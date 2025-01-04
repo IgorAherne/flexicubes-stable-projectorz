@@ -227,7 +227,7 @@ class FlexiCubes:
 
         # Step 1: compute case_ids from occ_fx8_bits
         case_ids = torch.zeros((num_cubes,), dtype=torch.long, device=device)
-        case_ids[surf_cubes] = occ_fx8_bits[surf_cubes].long()
+        case_ids[surf_cubes] = (occ_fx8_bits[surf_cubes].long() * self.cube_corners_idx.to(self.device).unsqueeze(0)).sum(-1)
 
         # Step 2: read problem_config for each cube in chunks
         chunk_size = 50_000
@@ -766,7 +766,7 @@ class FlexiCubes:
                 chunk_indices = edge_indices[start:end]
                 
                 chunk_s_edges = scalar_field[
-                    surf_edges[chunk_indices]  # Removed reshape since it was causing size mismatch
+                    surf_edges[chunk_indices.reshape(-1, 4)[:, 0]].reshape(-1)
                 ].reshape(-1, 2)
                 s_edges_chunks.append(chunk_s_edges)
                 
